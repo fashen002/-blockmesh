@@ -47,14 +47,15 @@ initialize_environment() {
     echo 'libc6 libraries/restart-without-asking boolean true' | debconf-set-selections
     echo 'grub-pc grub-pc/install_devices_empty boolean true' | debconf-set-selections
 
-    log_info "更新系统（跳过内核升级）..."
-    kill_apt_processes  # 确保没有 apt 进程运行
+    log_info "更新系统..."
+	# 确保没有 apt 进程运行
+    kill_apt_processes  
     sudo apt update -y
     sudo apt upgrade -y --ignore-missing linux-generic linux-image-generic linux-headers-generic
-
+	
     if [ $? -ne 0 ]; then
-        log_error "系统更新失败，请检查网络连接或其他 apt 进程。"
-        exit 1
+        
+        sudo dpkg --configure -a
     fi
 
     # 安装 Docker
