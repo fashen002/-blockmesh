@@ -169,6 +169,8 @@ if [ $# -eq 0 ]; then
         read -rp "请输入您的选择: " choice
         case $choice in
             1) 
+	    	# 初始化环境
+    		initialize_environment
                 read -rp "请输入您的 BlockMesh 邮箱: " email
                 echo "请输入您的 BlockMesh 密码（输入时不会显示在终端）:"
                 read -srp "密码: " password
