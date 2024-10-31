@@ -22,38 +22,64 @@ log_error() { echo -e "${RED}${ERROR_ICON} ${1}${NC}"; }
 
 
 
+# 强制终止任何正在运行的 apt 进程
+kill_apt_processes() {
+    local apt_processes=$(pgrep -f apt)
+
+    if [ -n "$apt_processes" ]; then
+        log_info "检测到正在运行的 apt 进程，正在终止..."
+        for pid in $apt_processes; do
+            sudo kill -9 $pid
+            log_info "已终止进程: $pid"
+        done
+    fi
+}
 
 # 初始化所有环境
 initialize_environment() {
-	# 设置非交互式前端
-	export DEBIAN_FRONTEND=noninteractive
-
-	# 预配置包以避免交互式提示
-	echo 'libc6 libraries/restart-without-asking boolean true' | sudo debconf-set-selections
-	echo 'grub-pc grub-pc/install_devices_empty boolean true' | sudo debconf-set-selections
-
-	# 更新系统包列表
-	log_info "更新系统包列表..."
-	if sudo apt-get update -y; then
-		log_success "包列表更新成功"
-	else
-		log_error "包列表更新失败"
-		exit 1
-	fi
-
-	# 升级系统并避免交互提示
-	log_info "开始升级系统..."
-	if sudo apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --with-new-pkgs; then
-		log_success "系统升级成功"
-	else
-		log_error "系统升级失败"
-		exit 1
-	fi
-	
+    clear
     log_info "显示 BlockMesh logo..."
-    wget -O loader.sh https://raw.githubusercontent.com/DiscoverMyself/Ramanode-Guides/main/loader.sh && chmod +x loader.sh && ./loader.sh
+    wget -q -O loader.sh https://raw.githubusercontent.com/DiscoverMyself/Ramanode-Guides/main/loader.sh && chmod +x loader.sh && ./loader.sh
     curl -s https://raw.githubusercontent.com/ziqing888/logo.sh/refs/heads/main/logo.sh | bash
     sleep 2
+
+    # 系统更新
+    log_info "更新系统..."
+    kill_apt_processes  # 确保没有 apt 进程运行
+    apt update -y && apt upgrade -y
+    if [ $? -ne 0 ]; then
+        log_error "系统更新失败，请检查网络连接或其他 apt 进程。"
+        exit 1
+    fi
+
+    # 安装 Docker
+    log_info "检查 Docker 是否已安装..."
+    if ! command -v docker &> /dev/null; then
+        log_info "安装 Docker..."
+        kill_apt_processes  # 确保没有 apt 进程运行
+        apt-get install -y ca-certificates curl gnupg lsb-release
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+        kill_apt_processes  # 确保没有 apt 进程运行
+        apt-get update -y && apt-get install -y docker-ce docker-ce-cli containerd.io
+        if [ $? -ne 0 ]; then
+            log_error "Docker 安装失败，请检查网络连接或权限。"
+            exit 1
+        fi
+        log_success "Docker 安装完成。"
+    else
+        log_success "Docker 已安装，跳过..."
+    fi
+
+    # 安装 Docker Compose
+    log_info "安装 Docker Compose..."
+    curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+    if [ $? -ne 0 ]; then
+        log_error "Docker Compose 安装失败。"
+        exit 1
+    fi
+    log_success "Docker Compose 安装完成。"
 
     # 下载和解压 BlockMesh CLI
     log_info "下载并解压 BlockMesh CLI..."
@@ -161,7 +187,7 @@ if [ $# -eq 0 ]; then
     while true; do
         clear
         echo -e "🚀 BlockMesh CLI 菜单"
-        echo -e "1) 初始化环境并输入登录信息"
+        echo -e "1) 输入登录信息"
         echo -e "2) 注册用户并等待确认"
         echo -e "3) 启动 BlockMesh"
         echo -e "4) 退出"
@@ -169,8 +195,7 @@ if [ $# -eq 0 ]; then
         read -rp "请输入您的选择: " choice
         case $choice in
             1) 
-	    	# 初始化环境
-    		initialize_environment
+				initialize_environment
                 read -rp "请输入您的 BlockMesh 邮箱: " email
                 echo "请输入您的 BlockMesh 密码（输入时不会显示在终端）:"
                 read -srp "密码: " password
