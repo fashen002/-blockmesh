@@ -137,6 +137,7 @@ run_docker_container() {
 
     # 启动 Docker 容器
     docker run -dit \
+    	--restart always \
         --name blockmesh-cli-container \
         -v "$(pwd)/target/release:/app" \
         -e EMAIL="$email" \
