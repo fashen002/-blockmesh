@@ -161,7 +161,7 @@ if [ $# -eq 0 ]; then
     while true; do
         clear
         echo -e "🚀 BlockMesh CLI 菜单"
-        echo -e "1) 输入登录信息"
+        echo -e "1) 初始化环境并输入登录信息"
         echo -e "2) 注册用户并等待确认"
         echo -e "3) 启动 BlockMesh"
         echo -e "4) 退出"
