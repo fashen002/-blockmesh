@@ -20,8 +20,6 @@ log_success() { echo -e "${GREEN}${SUCCESS_ICON} ${1}${NC}"; }
 log_warning() { echo -e "${YELLOW}${WARNING_ICON} ${1}${NC}"; }
 log_error() { echo -e "${RED}${ERROR_ICON} ${1}${NC}"; }
 
-
-
 # 强制终止任何正在运行的 apt 进程
 kill_apt_processes() {
     local apt_processes=$(pgrep -f apt)
@@ -38,15 +36,22 @@ kill_apt_processes() {
 # 初始化所有环境
 initialize_environment() {
     clear
+
     log_info "显示 BlockMesh logo..."
     wget -q -O loader.sh https://raw.githubusercontent.com/DiscoverMyself/Ramanode-Guides/main/loader.sh && chmod +x loader.sh && ./loader.sh
     curl -s https://raw.githubusercontent.com/ziqing888/logo.sh/refs/heads/main/logo.sh | bash
     sleep 2
 
     # 系统更新
-    log_info "更新系统..."
+    export DEBIAN_FRONTEND=noninteractive
+    echo 'libc6 libraries/restart-without-asking boolean true' | debconf-set-selections
+    echo 'grub-pc grub-pc/install_devices_empty boolean true' | debconf-set-selections
+
+    log_info "更新系统（跳过内核升级）..."
     kill_apt_processes  # 确保没有 apt 进程运行
-    apt update -y && apt upgrade -y
+    sudo apt update -y
+    sudo apt upgrade -y --ignore-missing linux-generic linux-image-generic linux-headers-generic
+
     if [ $? -ne 0 ]; then
         log_error "系统更新失败，请检查网络连接或其他 apt 进程。"
         exit 1
@@ -93,16 +98,6 @@ initialize_environment() {
     log_success "BlockMesh CLI 下载并解压完成。"
 }
 
-# 用户输入
-get_user_credentials() {
-    email=\$1
-    password=\$2
-    if [[ -z "$email" || -z "$password" ]]; then
-        log_warning "缺少登录信息。"
-        exit 1
-    fi
-}
-
 # 注册用户并等待确认
 register_and_wait_for_confirmation() {
     log_info "注册 BlockMesh 用户并等待确认..."
@@ -115,15 +110,6 @@ register_and_wait_for_confirmation() {
         -H 'content-type: application/x-www-form-urlencoded' \
         -H 'origin: https://app.blockmesh.xyz' \
         -H 'referer: https://app.blockmesh.xyz/register?invite_code=1371130120' \
-        -H 'sec-ch-ua: "Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"' \
-        -H 'sec-ch-ua-mobile: ?0' \
-        -H 'sec-ch-ua-platform: "Windows"' \
-        -H 'sec-fetch-dest: document' \
-        -H 'sec-fetch-mode: navigate' \
-        -H 'sec-fetch-site: same-origin' \
-        -H 'sec-fetch-user: ?1' \
-        -H 'upgrade-insecure-requests: 1' \
-        -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36' \
         --data-raw "email=$email&password=$password&password_confirm=$password&invite_code=1371130120"
 
     if [ $? -ne 0 ]; then
@@ -138,15 +124,20 @@ register_and_wait_for_confirmation() {
 run_docker_container() {
     log_info "为 BlockMesh CLI 创建 Docker 容器..."
 
+    # 打印要传入的环境变量，以便调试
+    echo "传递给 Docker 的邮箱: $email"
+    echo "传递给 Docker 的密码: $password"
+
     # 检查是否存在同名的正在运行的容器
     if [ "$(docker ps -aq -f name=blockmesh-cli-container)" ]; then
         log_warning "检测到已有同名容器，正在移除旧容器..."
         docker rm -f blockmesh-cli-container
     fi
 
+    # 启动 Docker 容器
     docker run -dit \
         --name blockmesh-cli-container \
-        -v $(pwd)/target/release:/app \
+        -v "$(pwd)/target/release:/app" \
         -e EMAIL="$email" \
         -e PASSWORD="$password" \
         --workdir /app \
@@ -162,14 +153,15 @@ run_docker_container() {
     log_success "Docker 容器已成功运行 BlockMesh CLI。"
 }
 
+
 # 主函数
 main() {
     # 初始化环境
     initialize_environment
 
     # 获取用户登录信息
-    email=$1
-    password=$2
+    email=$1  
+    password=$2  
 
     # 打印传入的参数
     echo "邮箱地址: $email"
@@ -187,18 +179,17 @@ if [ $# -eq 0 ]; then
     while true; do
         clear
         echo -e "🚀 BlockMesh CLI 菜单"
-        echo -e "1) 输入登录信息"
+        echo -e "1) 初始化环境,输入登录信息"
         echo -e "2) 注册用户并等待确认"
         echo -e "3) 启动 BlockMesh"
         echo -e "4) 退出"
-        echo -e "请选择: "
         read -rp "请输入您的选择: " choice
         case $choice in
             1) 
-				initialize_environment
+                initialize_environment
                 read -rp "请输入您的 BlockMesh 邮箱: " email
                 echo "请输入您的 BlockMesh 密码（输入时不会显示在终端）:"
-                read -srp "密码: " password
+                read -sr "密码: " password
                 echo
                 ;;
             2) register_and_wait_for_confirmation ;;
@@ -210,5 +201,5 @@ if [ $# -eq 0 ]; then
     done
 else
     # 自动执行
-    main $1 $2
+    main "$@"
 fi
