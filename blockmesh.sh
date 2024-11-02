@@ -89,7 +89,7 @@ initialize_environment() {
 
     # 下载和解压 BlockMesh CLI
     log_info "下载并解压 BlockMesh CLI..."
-    curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.316/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
+    curl -L  https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
     tar -xzf blockmesh-cli.tar.gz -C ./
     if [ $? -ne 0 ]; then
         log_error "BlockMesh CLI 下载或解压失败，请检查网络连接。"
