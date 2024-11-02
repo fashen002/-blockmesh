@@ -86,7 +86,7 @@ initialize_environment() {
         exit 1
     fi
     log_success "Docker Compose 安装完成。"
-
+    rm -rf blockmesh-cli.tar.gz target
     # 下载和解压 BlockMesh CLI
     log_info "下载并解压 BlockMesh CLI..."
     curl -L  https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
