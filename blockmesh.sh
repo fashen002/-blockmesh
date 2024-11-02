@@ -86,15 +86,21 @@ initialize_environment() {
         exit 1
     fi
     log_success "Docker Compose 安装完成。"
-    rm -rf blockmesh-cli.tar.gz target
-    # 下载和解压 BlockMesh CLI
-    log_info "下载并解压 BlockMesh CLI..."
-    curl -L  https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
-    tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C /root/
-    if [ $? -ne 0 ]; then
-        log_error "BlockMesh CLI 下载或解压失败，请检查网络连接。"
-        exit 1
-    fi
+    # 清理旧文件
+rm -rf blockmesh-cli.tar.gz target
+# 创建用于解压的目标目录
+mkdir -p target/release
+
+# 下载并解压最新版 BlockMesh CLI
+echo "下载并解压 BlockMesh CLI..."
+curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
+tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C target/release
+
+# 验证解压结果
+if [[ ! -f target/release/blockmesh-cli ]]; then
+    echo "错误：未找到 blockmesh-cli 可执行文件于 target/release。退出..."
+    exit 1
+fi
     rm -f blockmesh-cli.tar.gz
     log_success "BlockMesh CLI 下载并解压完成。"
 }
@@ -139,7 +145,7 @@ run_docker_container() {
     docker run -dit \
     	--restart always \
         --name blockmesh-cli-container \
-        -v "/root/target/release:/app" \
+       -v $(pwd)/target/release:/app \
         -e EMAIL="$email" \
         -e PASSWORD="$password" \
         --workdir /app \
