@@ -90,7 +90,7 @@ initialize_environment() {
     # 下载和解压 BlockMesh CLI
     log_info "下载并解压 BlockMesh CLI..."
     curl -L  https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.325/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
-    tar -xzf blockmesh-cli.tar.gz -C ./
+    tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C /root/
     if [ $? -ne 0 ]; then
         log_error "BlockMesh CLI 下载或解压失败，请检查网络连接。"
         exit 1
@@ -139,7 +139,7 @@ run_docker_container() {
     docker run -dit \
     	--restart always \
         --name blockmesh-cli-container \
-        -v "$(pwd)/target/release:/app" \
+        -v "/root/target/release:/app" \
         -e EMAIL="$email" \
         -e PASSWORD="$password" \
         --workdir /app \
