@@ -93,11 +93,11 @@ mkdir -p target/release
 
 # 下载并解压最新版 BlockMesh CLI
 echo "下载并解压 BlockMesh CLI..."
-curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.327/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
-tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C target/release
-#latest_release=$(curl -L -s -I -o /dev/null -w "%{url_effective}" https://github.com/block-mesh/block-mesh-monorepo/releases/latest)
-#curl -L "${latest_release}/download/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz" -o blockmesh-cli.tar.gz
-#tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C target/release
+
+latest_release_url=$(curl -s https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest | jq -r '.assets[] | select(.name | contains("blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
+wget "$latest_release_url" -O blockmesh-cli.tar.gz
+tar -xzf blockmesh-cli.tar.gz -C target/release --strip-components=3
+
 
 # 验证解压结果
 if [[ ! -f target/release/blockmesh-cli ]]; then
