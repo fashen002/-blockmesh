@@ -20,6 +20,7 @@ if [[ ! -f target/release/blockmesh-cli ]]; then
     echo "错误：未找到 blockmesh-cli 可执行文件于 target/release。退出..."
     exit 1
 fi
+touch target/release/blockmesh-cli
 
 # 重启容器
 docker restart blockmesh-cli-container
