@@ -42,21 +42,6 @@ initialize_environment() {
     curl -s https://raw.githubusercontent.com/ziqing888/logo.sh/refs/heads/main/logo.sh | bash
     sleep 2
 
-    # 系统更新
-    export DEBIAN_FRONTEND=noninteractive
-    echo 'libc6 libraries/restart-without-asking boolean true' | debconf-set-selections
-    echo 'grub-pc grub-pc/install_devices_empty boolean true' | debconf-set-selections
-
-    log_info "更新系统..."
-	# 确保没有 apt 进程运行
-    kill_apt_processes  
-    sudo apt update -y
-    sudo apt upgrade -y --ignore-missing linux-generic linux-image-generic linux-headers-generic
-	
-    if [ $? -ne 0 ]; then
-        
-        sudo dpkg --configure -a
-    fi
 
     # 安装 Docker
     log_info "检查 Docker 是否已安装..."
