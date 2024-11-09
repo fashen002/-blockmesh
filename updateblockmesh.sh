@@ -1,11 +1,9 @@
 #!/bin/bash
-directory="/root/Goat_bot"
-file="$directory/data.txt"
 
 # 检查目录是否存在
-if [ ! -d "$directory" ]; then
+if [ ! -d "/root/Goat_bot" ]; then
     # 创建目录
-    mkdir -p "$directory"
+    mkdir -p "/root/Goat_bot"
 fi
 # 检查文件是否存在
 if [ -e "/root/Goat_bot/data.txt" ]; then
