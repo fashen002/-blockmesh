@@ -1,5 +1,12 @@
 #!/bin/bash
+directory="/root/Goat_bot"
+file="$directory/data.txt"
 
+# 检查目录是否存在
+if [ ! -d "$directory" ]; then
+    # 创建目录
+    mkdir -p "$directory"
+fi
 # 检查文件是否存在
 if [ -e "/root/Goat_bot/data.txt" ]; then
     # 如果是文件夹，则删除
