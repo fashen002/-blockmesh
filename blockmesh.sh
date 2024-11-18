@@ -184,8 +184,8 @@ if [ $# -eq 0 ]; then
         case $choice in
             1) 
                 initialize_environment
-                read -p "请输入您的 BlockMesh 邮箱: " email
-                read -s -p "请输入您的 BlockMesh 密码: " password
+                read -p "请输入您的 BlockMesh 邮箱:" email
+                read -s -p "请输入您的 BlockMesh 密码:" password
             2) register_and_wait_for_confirmation ;;
             3) run_docker_container ;;
             4) log_info "退出脚本"; break ;;
