@@ -138,7 +138,7 @@ run_docker_container() {
         -e EMAIL="$email" \
         -e PASSWORD="$password" \
         --workdir /app \
-        ubuntu:22.04 ./blockmesh-cli --email "$email" --password "$password"
+        ubuntu:22.04 ./blockmesh-cli --email $email --password $password
 
     # 检查容器启动是否成功
     docker_return_code=$?
