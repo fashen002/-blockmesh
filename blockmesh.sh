@@ -185,9 +185,7 @@ if [ $# -eq 0 ]; then
             1) 
                 initialize_environment
                 read -rp "请输入您的 BlockMesh 邮箱: " email
-                echo "请输入您的 BlockMesh 密码（输入时不会显示在终端）:"
-                read -sr "密码: " password
-                echo
+                read -sr "请输入您的 BlockMesh 密码: " password
                 ;;
             2) register_and_wait_for_confirmation ;;
             3) run_docker_container ;;
