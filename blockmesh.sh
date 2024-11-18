@@ -42,17 +42,16 @@ initialize_environment() {
     curl -s https://raw.githubusercontent.com/ziqing888/logo.sh/refs/heads/main/logo.sh | bash
     sleep 2
 
-
     # 安装 Docker
     log_info "检查 Docker 是否已安装..."
     if ! command -v docker &> /dev/null; then
         log_info "安装 Docker..."
         kill_apt_processes  # 确保没有 apt 进程运行
-        apt-get install -y ca-certificates curl gnupg lsb-release
+        sudo apt-get install -y ca-certificates curl gnupg lsb-release
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         kill_apt_processes  # 确保没有 apt 进程运行
-        apt-get update -y && apt-get install -y docker-ce docker-ce-cli containerd.io
+        sudo apt-get update -y && sudo apt-get install -y docker-ce docker-ce-cli containerd.io
         if [ $? -ne 0 ]; then
             log_error "Docker 安装失败，请检查网络连接或权限。"
             exit 1
@@ -70,28 +69,26 @@ initialize_environment() {
         log_error "Docker Compose 安装失败。"
         exit 1
     fi
-    log_success "Docker Compose 安装完成。"
+    log_success "Docker Compose 安装完成."
+
     # 清理旧文件
-rm -rf blockmesh-cli.tar.gz target
-# 创建用于解压的目标目录
-mkdir -p target/release
+    rm -rf blockmesh-cli.tar.gz target
+    # 创建用于解压的目标目录
+    mkdir -p target/release
 
-# 下载并解压最新版 BlockMesh CLI
-echo "下载并解压 BlockMesh CLI..."
+    # 下载并解压最新版 BlockMesh CLI
+    log_info "下载并解压 BlockMesh CLI..."
+    latest_release_url=$(curl -s https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest | jq -r '.assets[] | select(.name | contains("blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
+    wget "$latest_release_url" -O blockmesh-cli.tar.gz
+    tar -xzf blockmesh-cli.tar.gz -C target/release --strip-components=3
 
-latest_release_url=$(curl -s https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest | jq -r '.assets[] | select(.name | contains("blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
-echo $latest_release_url
-wget "$latest_release_url" -O blockmesh-cli.tar.gz
-tar -xzf blockmesh-cli.tar.gz -C target/release --strip-components=3
-
-
-# 验证解压结果
-if [[ ! -f target/release/blockmesh-cli ]]; then
-    echo "错误：未找到 blockmesh-cli 可执行文件于 target/release。退出..."
-    exit 1
-fi
+    # 验证解压结果
+    if [[ ! -f target/release/blockmesh-cli ]]; then
+        echo "错误：未找到 blockmesh-cli 可执行文件于 target/release。退出..."
+        exit 1
+    fi
     rm -f blockmesh-cli.tar.gz
-    log_success "BlockMesh CLI 下载并解压完成。"
+    log_success "BlockMesh CLI 下载并解压完成."
 }
 
 # 注册用户并等待确认
@@ -113,7 +110,7 @@ register_and_wait_for_confirmation() {
         exit 1
     fi
 
-    log_success "邮箱确认成功。"
+    log_success "邮箱确认成功."
 }
 
 # 运行 Docker 容器
@@ -125,20 +122,20 @@ run_docker_container() {
     echo "传递给 Docker 的密码: $password"
 
     # 检查是否存在同名的正在运行的容器
-    if [ "$(docker ps -aq -f name=blockmesh-cli-container)" ]; then
+    if [ "$(sudo docker ps -aq -f name=blockmesh-cli-container)" ]; then
         log_warning "检测到已有同名容器，正在移除旧容器..."
-        docker rm -f blockmesh-cli-container
+        sudo docker rm -f blockmesh-cli-container
     fi
 
     # 启动 Docker 容器
-    docker run -dit \
+    sudo docker run -dit \
     	--restart always \
         --name blockmesh-cli-container \
-       -v $(pwd)/target/release:/app \
+        -v $(pwd)/target/release:/app \
         -e EMAIL="$email" \
         -e PASSWORD="$password" \
         --workdir /app \
-        ubuntu:22.04 ./blockmesh-cli --email '$email' --password '$password'
+        ubuntu:22.04 ./blockmesh-cli --email "$email" --password "$password"
 
     # 检查容器启动是否成功
     docker_return_code=$?
@@ -147,9 +144,8 @@ run_docker_container() {
         exit 1
     fi
 
-    log_success "Docker 容器已成功运行 BlockMesh CLI。"
+    log_success "Docker 容器已成功运行 BlockMesh CLI."
 }
-
 
 # 主函数
 main() {
@@ -157,8 +153,8 @@ main() {
     initialize_environment
 
     # 获取用户登录信息
-    email=$1  
-    password=$2  
+    email=\$1  
+    password=\$2  
 
     # 打印传入的参数
     echo "邮箱地址: $email"
@@ -167,7 +163,6 @@ main() {
     # 运行 Docker 容器
     run_docker_container
 }
-
 
 # 判断是否传入命令行参数
 if [ $# -eq 0 ]; then
