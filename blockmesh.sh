@@ -81,7 +81,7 @@ initialize_environment() {
     #latest_release_url=$(curl -s https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest | jq -r '.assets[] | select(.name | contains("blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
     #wget "$latest_release_url" -O blockmesh-cli.tar.gz
     #tar -xzf blockmesh-cli.tar.gz -C target/release --strip-components=3
-    curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.358/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
+    curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.352/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
     tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C target/release
     # 验证解压结果
     if [[ ! -f target/release/blockmesh-cli ]]; then
