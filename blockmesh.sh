@@ -78,11 +78,10 @@ initialize_environment() {
 
     # 下载并解压最新版 BlockMesh CLI
     log_info "下载并解压 BlockMesh CLI..."
-    #latest_release_url=$(curl -s https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest | jq -r '.assets[] | select(.name | contains("blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
-    #wget "$latest_release_url" -O blockmesh-cli.tar.gz
-    #tar -xzf blockmesh-cli.tar.gz -C target/release --strip-components=3
-    curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.352/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
-    tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C target/release
+    latest_release_url=$(curl -s https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest | jq -r '.assets[] | select(.name | contains("blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
+    wget "$latest_release_url" -O blockmesh-cli.tar.gz
+    tar -xzf blockmesh-cli.tar.gz -C target/release --strip-components=3
+
     # 验证解压结果
     if [[ ! -f target/release/blockmesh-cli ]]; then
         echo "错误：未找到 blockmesh-cli 可执行文件于 target/release。退出..."
