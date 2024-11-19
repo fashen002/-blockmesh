@@ -51,7 +51,7 @@ initialize_environment() {
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         kill_apt_processes  # 确保没有 apt 进程运行
-        sudo apt-get update -y && sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io
         if [ $? -ne 0 ]; then
             log_error "Docker 安装失败，请检查网络连接或权限。"
             exit 1
@@ -78,10 +78,11 @@ initialize_environment() {
 
     # 下载并解压最新版 BlockMesh CLI
     log_info "下载并解压 BlockMesh CLI..."
-    latest_release_url=$(curl -s https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest | jq -r '.assets[] | select(.name | contains("blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
-    wget "$latest_release_url" -O blockmesh-cli.tar.gz
-    tar -xzf blockmesh-cli.tar.gz -C target/release --strip-components=3
-
+    #latest_release_url=$(curl -s https://api.github.com/repos/block-mesh/block-mesh-monorepo/releases/latest | jq -r '.assets[] | select(.name | contains("blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz")) | .browser_download_url')
+    #wget "$latest_release_url" -O blockmesh-cli.tar.gz
+    #tar -xzf blockmesh-cli.tar.gz -C target/release --strip-components=3
+    curl -L https://github.com/block-mesh/block-mesh-monorepo/releases/download/v0.0.358/blockmesh-cli-x86_64-unknown-linux-gnu.tar.gz -o blockmesh-cli.tar.gz
+    tar -xzf blockmesh-cli.tar.gz --strip-components=3 -C target/release
     # 验证解压结果
     if [[ ! -f target/release/blockmesh-cli ]]; then
         echo "错误：未找到 blockmesh-cli 可执行文件于 target/release。退出..."
