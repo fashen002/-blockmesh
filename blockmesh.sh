@@ -40,8 +40,8 @@ mkdir -p target/release
 	fi
 
 
-email=\$1  
-password=\$2  
+email=$1  
+password=$2  
 # 检查是否存在同名的正在运行的容器
 if [ "$(sudo docker ps -aq -f name=blockmesh-cli-container)" ]; then
 log_warning "检测到已有同名容器，正在移除旧容器..."
