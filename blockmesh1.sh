@@ -40,9 +40,6 @@ mkdir -p target/release
 	fi
 
 
-email="1371130120@qq.com" 
-password="Huawei@123"
-
 
 # 检查是否存在同名的正在运行的容器
 if [ "$(sudo docker ps -aq -f name=blockmesh-cli-container)" ]; then
@@ -51,12 +48,12 @@ sudo docker rm -f blockmesh-cli-container
 fi
 # 使用 BlockMesh CLI 创建 Docker 容器
 echo "为 BlockMesh CLI 创建 Docker 容器..."
-docker run -it --rm \
+docker run -dit  \
     --name blockmesh-cli-container \
     -v $(pwd)/target/release:/app \
-    -e EMAIL="$email" \
-    -e PASSWORD="$password" \
+    -e EMAIL="1371130120@qq.com"  \
+    -e PASSWORD="Huawei@123" \
     --workdir /app \
-    ubuntu:22.04 ./blockmesh-cli --email "$email" --password "$password"
+    ubuntu:22.04 ./blockmesh-cli --email "1371130120@qq.com"  --password "Huawei@123"
 	
 	
