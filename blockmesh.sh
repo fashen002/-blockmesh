@@ -42,7 +42,11 @@ mkdir -p target/release
 
 email=\$1  
 password=\$2  
-
+# 检查是否存在同名的正在运行的容器
+if [ "$(sudo docker ps -aq -f name=blockmesh-cli-container)" ]; then
+log_warning "检测到已有同名容器，正在移除旧容器..."
+sudo docker rm -f blockmesh-cli-container
+fi
 # 使用 BlockMesh CLI 创建 Docker 容器
 echo "为 BlockMesh CLI 创建 Docker 容器..."
 docker run -it --rm \
